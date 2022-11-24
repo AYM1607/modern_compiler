@@ -1,4 +1,4 @@
-type id = string
+type Id = string
 
 datatype binop = Plus | Minus | Times | Div
 
@@ -8,8 +8,13 @@ datatype stm = CompoundStm of stm * stm
 
      and exp = IdExp of id
 	     | NumExp of int
-             | OpExp of exp * binop * exp
-             | EseqExp of stm * exp
+         | OpExp of exp * binop * exp
+         | EseqExp of stm * exp
+
+
+(* The following program is a tree representation of:
+ * a := 5+3; b := (print (a,a - 1), 10*a); print(b)
+ *)
 val prog = 
  CompoundStm(AssignStm("a",OpExp(NumExp 5, Plus, NumExp 3)),
   CompoundStm(AssignStm("b",
