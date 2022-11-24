@@ -22,4 +22,19 @@ val prog =
            OpExp(NumExp 10, Times, IdExp"a"))),
    PrintStm[IdExp "b"]))
 
+(* 
+ * maxArgs is a function that counts the maximum number of arguments
+ * passed to print statement in any sub-statement of an slp program.
+ *)
+fun maxArgs (CompoundStm(l, r)) = Int.max(maxArgs l, maxArgs r)
+  | maxArgs (PrintStm(es)) = Int.max(length es, expsMaxArgs es)
+  | maxArgs (AssignStm(_, e)) = expMaxArgs e
+
+and expMaxArgs (EseqExp(s, e)) = Int.max(expMaxArgs e, maxArgs s)
+  | expMaxArgs (OpExp(l, _, r)) = Int.max(expMaxArgs l, expMaxArgs r)
+  | expMaxArgs (IdExp(_)) = 0
+  | expMaxArgs (NumExp(_)) = 0
+
+and expsMaxArgs ([]) = 0
+  | expsMaxArgs (e::es) = Int.max(expMaxArgs e, expsMaxArgs es)
 
