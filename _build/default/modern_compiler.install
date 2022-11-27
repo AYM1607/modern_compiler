@@ -1,0 +1,11 @@
+lib: [
+  "_build/install/default/lib/modern_compiler/META"
+  "_build/install/default/lib/modern_compiler/dune-package"
+  "_build/install/default/lib/modern_compiler/opam"
+]
+bin: [
+  "_build/install/default/bin/modern_compiler"
+]
+doc: [
+  "_build/install/default/doc/modern_compiler/README.md"
+]

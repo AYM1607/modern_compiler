@@ -1,0 +1,4 @@
+(executable
+ (public_name modern_compiler)
+ (name main)
+ (libraries modern_compiler))
