@@ -1,4 +1,12 @@
 (executable
- (public_name modern_compiler)
- (name main)
- (libraries modern_compiler))
+ (public_name tiger)
+ (name tiger)
+ (modules tiger)
+ (libraries tiger))
+
+(executable
+  (public_name chap1)
+  (name chap1)
+  (modules chap1)
+  (libraries chap1))
+  

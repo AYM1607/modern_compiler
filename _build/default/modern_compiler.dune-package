@@ -1,7 +1,0 @@
-(lang dune 3.6)
-(name modern_compiler)
-(sections (lib .) (bin ../../bin) (doc ../../doc/modern_compiler))
-(files
- (lib (META dune-package opam))
- (bin (modern_compiler))
- (doc (README.md)))
