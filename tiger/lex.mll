@@ -2,6 +2,7 @@
 module T = Tokens
 module L = Lexing 
 module B = Buffer
+module E = ErrMsg
 
 let get      = L.lexeme
 let sprintf  = Printf.sprintf
@@ -10,11 +11,15 @@ let get_line lexbuf = lexbuf.L.lex_curr_p.pos_lnum
 let get_col lexbuf =
   let p = lexbuf.L.lex_curr_p in
     p.pos_cnum - p.pos_bol
+
+let error msg lexbuf =
+  E.error msg (get_line lexbuf) (get_col lexbuf)
 }
 
 let ws = [' ' '\t']
 let nl = '\n'
-let nlsl = ['\n' '\x0C']
+let slnl = ['\n' '\x0C'] (* New lines in string literals *)
+let slvc = [^'"' '\\' '\t' '\n' '\x0C'] (* String literal valid characters *)
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 let id = alpha (alpha|digit|'_')*
@@ -65,7 +70,13 @@ rule token = parse
 | ":="        { T.ASSIGN (get_line lexbuf, get_col lexbuf) }
 | id          { T.ID (get lexbuf, get_line lexbuf, get_col lexbuf) }
 | '"'         { T.STR (string (B.create 80) lexbuf, get_line lexbuf, get_col lexbuf) }
+| "/*"        { comment 0 lexbuf }
+| eof         { T.EOF }
+| _ as c      { error (sprintf "invalid character %c" c) lexbuf }
 and string buf = parse
+| slvc        {B.add_string buf (get lexbuf)
+              ; string buf lexbuf
+              }
 | "\\t"       { B.add_char buf '\t'
               ; string buf lexbuf
               }
@@ -75,9 +86,26 @@ and string buf = parse
 | "\\\""      { B.add_char buf '"'
               ; string buf lexbuf
               }
-| "\\\\"      { B.add_char buf '\\'
+| "\\\\"        { B.add_char buf '\\'
               ; string buf lexbuf
               }
+| '\\'        { string_escape buf lexbuf }
 | '"'         { B.contents buf }
-| eof         { (* pending, should produce an error *) }
-| _           { (* pending, should produce an error *) }
+| eof         { error "found end of file within string literal" lexbuf }
+| _ as c      { error (sprintf "invalid character \"%c\" found inside string literal" c) lexbuf }
+and string_escape buf = parse
+| slnl        { L.new_line lexbuf
+              ; string_escape buf lexbuf
+              }
+| ws          { string_escape buf lexbuf }
+| '\\'        { string buf lexbuf }
+| eof         { error "found end of file within string literal" lexbuf }
+| _ as c      { error (sprintf "invalid character \"%c\" found inside string escape" c) lexbuf }
+and comment depth = parse
+| nl          { L.new_line lexbuf
+              ; comment depth lexbuf
+              }
+| "/*"        { comment (depth + 1) lexbuf }
+| "*/"        { if depth = 0 then token lexbuf else comment (depth - 1) lexbuf }
+| _           { comment depth lexbuf }
+| eof         { error "found end of file within comment" lexbuf }

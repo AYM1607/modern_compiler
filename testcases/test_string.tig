@@ -1,0 +1,2 @@
+var s := "Some string \" \t \n \\ \			
+\with some continuation"
